@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeNet</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111827;
+      --muted: #667085;
+      --line: #d8dee8;
+      --bg: #eef3f8;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --accent-dark: #0b5f59;
+      --danger: #b42318;
+      --soft: #e8f5f2;
+      --shadow: 0 14px 30px rgba(17, 24, 39, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(15, 118, 110, 0.10), transparent 260px),
+        var(--bg);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .phone-screen {
+      width: min(100%, 430px);
+      min-height: 100vh;
+      background: #f8fafc;
+    }
+
+    .empty-pass,
+    .setup-state,
+    .load-state {
+      display: none;
+      min-height: 100vh;
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      background: white;
+      line-height: 1.6;
+    }
+
+    .empty-pass.active,
+    .setup-state.active,
+    .load-state.active {
+      display: flex;
+    }
+
+    .alert-app {
+      display: none;
+      min-height: 100vh;
+      padding: max(14px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+    }
+
+    .alert-app.active {
+      display: block;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      margin: -14px -14px 12px;
+      padding: max(16px, env(safe-area-inset-top)) 14px 14px;
+      color: white;
+      background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+      box-shadow: 0 10px 24px rgba(15, 118, 110, 0.22);
+    }
+
+    .network {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      opacity: 0.94;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .header p {
+      margin: 8px 0 0;
+      font-size: 14px;
+      line-height: 1.45;
+      opacity: 0.94;
+      word-break: keep-all;
+    }
+
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--danger);
+      background: white;
+      font-weight: 900;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .child-card {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .photo,
+    .photo-empty {
+      width: 96px;
+      aspect-ratio: 4 / 5;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #edf2f7;
+      object-fit: cover;
+    }
+
+    .photo-empty {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .card-body {
+      min-width: 0;
+    }
+
+    .card-body h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 9px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 0 9px;
+      color: #31428f;
+      background: #edf2ff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .detail {
+      margin: 0;
+      color: #344054;
+      font-size: 14px;
+      line-height: 1.52;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .notice {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid #b9ded8;
+      border-radius: 8px;
+      color: #14534f;
+      background: var(--soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .state-card {
+      width: min(100%, 320px);
+      display: grid;
+      gap: 8px;
+    }
+
+    .state-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    @media (min-width: 700px) {
+      body {
+        padding: 28px 0;
+      }
+
+      .phone-screen {
+        min-height: 844px;
+        border: 1px solid #ccd5e1;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 24px 70px rgba(17, 24, 39, 0.22);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .child-card {
+        grid-template-columns: 82px 1fr;
+      }
+
+      .photo,
+      .photo-empty {
+        width: 82px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone-screen">
+    <section class="setup-state" id="setupState">
+      <div class="state-card">
+        <strong>표시 주소를 확인해주세요</strong>
+        <p>기업 코드가 없는 주소입니다.<br>관리 화면에서 발급된 와이파이 연결용 주소로 접속해주세요.</p>
+      </div>
+    </section>
+
+    <section class="load-state" id="loadState">
+      <div class="state-card">
+        <strong>서버 연결 실패</strong>
+        <p>배포된 서비스 주소가 맞는지 확인해주세요.</p>
+      </div>
+    </section>
+
+    <section class="empty-pass" id="emptyPass" aria-live="polite">
+      <div class="state-card">
+        <strong>현재 표시할 알림이 없습니다</strong>
+        <p>등록된 알림이 없어 일반 와이파이 연결 화면으로 넘어갑니다.</p>
+      </div>
+    </section>
+
+    <section class="alert-app" id="alertApp" aria-label="SafeNet 알림">
+      <header class="header">
+        <div class="network">
+          <span id="companyName">SafeNet</span>
+          <span class="count-badge"><span id="countText">0</span>건</span>
+        </div>
+        <h1>SafeNet</h1>
+        <p>아래 정보와 비슷한 아이를 보면 가까운 직원에게 바로 알려주세요.</p>
+      </header>
+
+      <p class="notice" id="reportGuide">가까운 직원 또는 안내 데스크에 알려주세요.</p>
+      <div class="list" id="alertList"></div>
+    </section>
+  </main>
+
+  <script>
+    const companyCode = new URLSearchParams(location.search).get("company") || "";
+    const setupState = document.querySelector("#setupState");
+    const loadState = document.querySelector("#loadState");
+    const emptyPass = document.querySelector("#emptyPass");
+    const alertApp = document.querySelector("#alertApp");
+    const alertList = document.querySelector("#alertList");
+    const countText = document.querySelector("#countText");
+    const companyName = document.querySelector("#companyName");
+    const reportGuide = document.querySelector("#reportGuide");
+
+    function setScreen(screen) {
+      setupState.classList.toggle("active", screen === "setup");
+      loadState.classList.toggle("active", screen === "load");
+      emptyPass.classList.toggle("active", screen === "empty");
+      alertApp.classList.toggle("active", screen === "alerts");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function photoMarkup(alert) {
+      if (alert.photo_url) {
+        return `<img class="photo" src="${alert.photo_url}" alt="${escapeHtml(alert.name)} 사진">`;
+      }
+      return `<div class="photo-empty" aria-label="사진 없음">사진<br>없음</div>`;
+    }
+
+    async function loadAlerts() {
+      const response = await fetch(`/api/public/alerts?company=${encodeURIComponent(companyCode)}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "알림을 불러오지 못했습니다.");
+      }
+      return data;
+    }
+
+    async function render() {
+      if (!companyCode) {
+        setScreen("setup");
+        return;
+      }
+
+      try {
+        const data = await loadAlerts();
+        const alerts = data.alerts || [];
+        companyName.textContent = data.company ? data.company.name : "SafeNet";
+        reportGuide.textContent = data.company && data.company.reportInstruction
+          ? data.company.reportInstruction
+          : "가까운 직원 또는 안내 데스크에 알려주세요.";
+        countText.textContent = alerts.length;
+
+        if (!alerts.length) {
+          alertList.innerHTML = "";
+          setScreen("empty");
+          return;
+        }
+
+        alertList.innerHTML = alerts.map((alert) => `
+          <article class="child-card">
+            ${photoMarkup(alert)}
+            <div class="card-body">
+              <h2>${escapeHtml(alert.name)}</h2>
+              <div class="facts">
+                <span class="pill">${escapeHtml(alert.gender)}</span>
+                <span class="pill">${escapeHtml(alert.age)}세</span>
+              </div>
+              <p class="detail">${escapeHtml(alert.detail)}</p>
+            </div>
+          </article>
+        `).join("");
+        setScreen("alerts");
+      } catch {
+        setScreen("load");
+      }
+    }
+
+    if (companyCode) {
+      const events = new EventSource(`/api/events?company=${encodeURIComponent(companyCode)}`);
+      events.addEventListener("alerts", render);
+      events.onerror = () => {
+        if (!alertApp.classList.contains("active") && !emptyPass.classList.contains("active")) {
+          setScreen("load");
+        }
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SafeNet 기업 관리</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182230;
+      --muted: #667085;
+      --line: #d0d7e2;
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --accent: #0f766e;
+      --accent-dark: #0b5f59;
+      --danger: #b42318;
+      --danger-soft: #fff1f0;
+      --ok-soft: #e8f5f2;
+      --shadow: 0 18px 46px rgba(24, 34, 48, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 36%),
+        linear-gradient(315deg, rgba(180, 35, 24, 0.06), transparent 34%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      color: white;
+      background: var(--accent);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand p,
+    .panel-head p,
+    .metric span,
+    .hint,
+    .item-meta,
+    .empty {
+      color: var(--muted);
+    }
+
+    .panel,
+    .server-note,
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .auth-grid,
+    .admin-grid,
+    .metrics {
+      display: grid;
+      gap: 16px;
+    }
+
+    .auth-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-grid {
+      grid-template-columns: minmax(320px, 430px) 1fr;
+      align-items: start;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      box-shadow: none;
+      padding: 15px 16px;
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .panel-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+
+    .panel-head h2 {
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .panel-head p {
+      margin-top: 5px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    form,
+    .panel-body {
+      display: grid;
+      gap: 14px;
+      padding: 18px 20px 20px;
+    }
+
+    .settings-form {
+      padding: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .primary,
+    .secondary,
+    .danger,
+    .copy-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      padding: 0 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .primary {
+      color: white;
+      background: var(--accent);
+    }
+
+    .primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .secondary,
+    .copy-link {
+      color: var(--ink);
+      background: white;
+      border-color: var(--line);
+    }
+
+    .danger {
+      color: var(--danger);
+      background: white;
+      border-color: #f0b8b2;
+    }
+
+    .message {
+      display: none;
+      border-radius: 8px;
+      padding: 11px 12px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px solid #f0b8b2;
+    }
+
+    .message.ok {
+      color: #14534f;
+      background: var(--ok-soft);
+      border: 1px solid #b9ded8;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      padding: 0 20px 20px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .photo,
+    .photo-empty {
+      width: 72px;
+      aspect-ratio: 4 / 5;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #edf2f7;
+      object-fit: cover;
+    }
+
+    .photo-empty {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .item-detail {
+      margin-top: 5px;
+      color: #475467;
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .empty,
+    .server-note {
+      padding: 30px 18px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      text-align: center;
+    }
+
+    .display-link {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      color: #344054;
+      background: #fbfcfe;
+      word-break: break-all;
+      font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      max-width: min(360px, calc(100% - 32px));
+      padding: 13px 15px;
+      border-radius: 8px;
+      color: white;
+      background: #172033;
+      box-shadow: var(--shadow);
+      transform: translateY(120%);
+      transition: transform 180ms ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+    }
+
+    .dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.38);
+      z-index: 30;
+    }
+
+    .dialog-backdrop.show {
+      display: grid;
+    }
+
+    .dialog {
+      width: min(420px, 100%);
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+      overflow: hidden;
+    }
+
+    .dialog header {
+      padding: 18px 20px 0;
+    }
+
+    .dialog h3 {
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .dialog p {
+      padding: 10px 20px 18px;
+      color: #475467;
+      line-height: 1.55;
+    }
+
+    .dialog footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 20px 18px;
+      border-top: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 860px) {
+      .auth-grid,
+      .admin-grid,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .form-row,
+      .item {
+        grid-template-columns: 1fr;
+      }
+
+      .photo,
+      .photo-empty {
+        width: 92px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">Wi</div>
+        <div>
+          <h1>SafeNet 기업 관리</h1>
+          <p>기업별 계정으로 알림 등록, 표시 주소, 현재 상태를 관리합니다.</p>
+        </div>
+      </div>
+      <button class="secondary hidden" type="button" id="logoutButton">로그아웃</button>
+    </header>
+
+    <section class="server-note hidden" id="serverNote">
+      이 화면은 서버 주소에서 열어야 작동합니다. 배포된 서비스 주소의 `/admin`으로 접속하세요.
+    </section>
+
+    <section class="auth-grid" id="authView">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>기업 회원가입</h2>
+          <p>처음 사용하는 기업은 고유 기업 코드를 만든 뒤 바로 관리할 수 있습니다.</p>
+        </div>
+        <form id="signupForm">
+          <div class="message error" id="signupMessage"></div>
+          <label>
+            기업명
+            <input type="text" id="signupName" placeholder="예: 해피랜드 놀이공원" maxlength="60" required>
+          </label>
+          <label>
+            기업 코드
+            <input type="text" id="signupCode" placeholder="예: happyland" maxlength="40" pattern="[A-Za-z0-9_-]+" required>
+            <span class="hint">와이파이 표시 주소에 쓰입니다. 영어, 숫자, 하이픈, 언더바만 가능합니다.</span>
+          </label>
+          <label>
+            비밀번호
+            <input type="password" id="signupPassword" minlength="4" required>
+          </label>
+          <button class="primary" type="submit">기업 계정 만들기</button>
+        </form>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>기업 로그인</h2>
+          <p>기업 코드와 비밀번호로 기존 관리 공간에 접속합니다.</p>
+        </div>
+        <form id="loginForm">
+          <div class="message error" id="loginMessage"></div>
+          <label>
+            기업 코드
+            <input type="text" id="loginCode" placeholder="예: happyland" maxlength="40" required>
+          </label>
+          <label>
+            비밀번호
+            <input type="password" id="loginPassword" required>
+          </label>
+          <button class="primary" type="submit">로그인</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="hidden" id="adminView">
+      <section class="metrics" aria-live="polite">
+        <div class="metric">
+          <span>현재 기업</span>
+          <strong id="metricCompany">-</strong>
+        </div>
+        <div class="metric">
+          <span>등록 개수</span>
+          <strong id="metricCount">0건</strong>
+        </div>
+        <div class="metric">
+          <span>표시 상태</span>
+          <strong id="metricState">대기</strong>
+        </div>
+      </section>
+
+      <section class="admin-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h2>아이 정보 등록</h2>
+            <p>등록한 정보는 이 기업의 와이파이 연결 화면에만 표시됩니다.</p>
+          </div>
+          <form id="alertForm">
+            <div class="message error" id="alertMessage"></div>
+            <label>
+              아이 사진
+              <input type="file" id="photoInput" accept="image/*">
+            </label>
+            <label>
+              식별명
+              <input type="text" id="nameInput" placeholder="예: 빨간 모자 아이" maxlength="32" required>
+            </label>
+            <div class="form-row">
+              <label>
+                성별
+                <select id="genderInput" required>
+                  <option value="">선택</option>
+                  <option>남아</option>
+                  <option>여아</option>
+                  <option>확인 필요</option>
+                </select>
+              </label>
+              <label>
+                나이
+                <input type="number" id="ageInput" min="0" max="18" placeholder="예: 7" required>
+              </label>
+            </div>
+            <label>
+              세부 사항
+              <textarea id="detailInput" placeholder="예: 노란 후드티, 파란 운동화, 마지막 목격 장소는 푸드코트 앞" maxlength="240" required></textarea>
+            </label>
+            <div class="actions">
+              <button class="primary" type="submit">등록하기</button>
+              <button class="secondary" type="reset">입력 지우기</button>
+              <button class="danger" type="button" id="clearButton">전체 삭제</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2 id="companyTitle">현재 등록된 알림</h2>
+            <p>삭제하면 폰 알림 화면에서도 즉시 사라집니다.</p>
+          </div>
+          <div class="panel-body">
+            <label>
+              와이파이 연결용 주소
+              <div class="display-link" id="displayUrl">로그인 후 표시됩니다.</div>
+            </label>
+            <div class="actions">
+              <a class="copy-link" id="openDisplayLink" href="/child-alert-mobile.html" target="_blank" rel="noreferrer">폰 화면 열기</a>
+              <button class="secondary" type="button" id="copyButton">주소 복사</button>
+            </div>
+            <form class="settings-form" id="companyForm">
+              <div class="message error" id="companyMessage"></div>
+              <label>
+                신고 안내 문구
+                <textarea id="reportInstructionInput" maxlength="160" required></textarea>
+                <span class="hint">폰 화면에서 이용자가 어디에 알려야 하는지 보여줍니다.</span>
+              </label>
+              <div class="actions">
+                <button class="primary" type="submit">안내 저장</button>
+              </div>
+            </form>
+          </div>
+          <div class="list" id="alertList"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="dialog-backdrop" id="dialogBackdrop" role="presentation">
+    <section class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogBody">
+      <header>
+        <h3 id="dialogTitle">알림</h3>
+      </header>
+      <p id="dialogBody"></p>
+      <footer>
+        <button class="primary" type="button" id="dialogClose">확인</button>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+
+    const authView = $("#authView");
+    const adminView = $("#adminView");
+    const serverNote = $("#serverNote");
+    const signupForm = $("#signupForm");
+    const loginForm = $("#loginForm");
+    const alertForm = $("#alertForm");
+    const companyForm = $("#companyForm");
+    const alertList = $("#alertList");
+    const companyTitle = $("#companyTitle");
+    const displayUrl = $("#displayUrl");
+    const openDisplayLink = $("#openDisplayLink");
+    const copyButton = $("#copyButton");
+    const logoutButton = $("#logoutButton");
+    const photoInput = $("#photoInput");
+    const nameInput = $("#nameInput");
+    const genderInput = $("#genderInput");
+    const ageInput = $("#ageInput");
+    const detailInput = $("#detailInput");
+    const reportInstructionInput = $("#reportInstructionInput");
+    const clearButton = $("#clearButton");
+    const toast = $("#toast");
+    const metricCompany = $("#metricCompany");
+    const metricCount = $("#metricCount");
+    const metricState = $("#metricState");
+    const dialogBackdrop = $("#dialogBackdrop");
+    const dialogTitle = $("#dialogTitle");
+    const dialogBody = $("#dialogBody");
+    const dialogClose = $("#dialogClose");
+    const messages = {
+      signup: $("#signupMessage"),
+      login: $("#loginMessage"),
+      alert: $("#alertMessage"),
+      company: $("#companyMessage")
+    };
+
+    let currentCompany = null;
+    let toastTimer;
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1700);
+    }
+
+    function showDialog(title, message) {
+      dialogTitle.textContent = title;
+      dialogBody.textContent = message;
+      dialogBackdrop.classList.add("show");
+      dialogClose.focus();
+    }
+
+    function closeDialog() {
+      dialogBackdrop.classList.remove("show");
+    }
+
+    function showInlineMessage(target, message) {
+      const node = messages[target];
+      if (!node) return;
+      node.textContent = message;
+      node.classList.add("show");
+    }
+
+    function clearInlineMessage(target) {
+      const node = messages[target];
+      if (!node) return;
+      node.textContent = "";
+      node.classList.remove("show");
+    }
+
+    function showError(target, message) {
+      showInlineMessage(target, message);
+      showDialog("요청 실패", message);
+    }
+
+    function setBusy(form, busy) {
+      form.querySelectorAll("button, input, select, textarea").forEach((element) => {
+        element.disabled = busy;
+      });
+    }
+
+    function showServerNote() {
+      serverNote.classList.remove("hidden");
+      authView.classList.add("hidden");
+      adminView.classList.add("hidden");
+    }
+
+    async function api(path, options = {}) {
+      try {
+        const response = await fetch(path, options);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "요청을 처리하지 못했습니다.");
+        }
+        return data;
+      } catch (error) {
+        if (location.protocol === "file:") {
+          showServerNote();
+          throw new Error("서버 주소에서 열어야 합니다.");
+        }
+        throw error;
+      }
+    }
+
+    function photoMarkup(alert) {
+      if (alert.photo_url) {
+        return `<img class="photo" src="${alert.photo_url}" alt="${escapeHtml(alert.name)} 사진">`;
+      }
+      return `<div class="photo-empty" aria-label="사진 없음">사진 없음</div>`;
+    }
+
+    function showAuth() {
+      authView.classList.remove("hidden");
+      adminView.classList.add("hidden");
+      logoutButton.classList.add("hidden");
+    }
+
+    function showAdmin(company) {
+      currentCompany = company;
+      authView.classList.add("hidden");
+      adminView.classList.remove("hidden");
+      logoutButton.classList.remove("hidden");
+      companyTitle.textContent = `${company.name} 등록 목록`;
+      metricCompany.textContent = company.name;
+      const absoluteUrl = company.wifiPortalUrl || new URL(company.displayUrl, location.origin).href;
+      displayUrl.textContent = absoluteUrl;
+      openDisplayLink.href = company.displayUrl;
+      reportInstructionInput.value = company.reportInstruction || "가까운 직원 또는 안내 데스크에 알려주세요.";
+    }
+
+    async function loadAlerts() {
+      const data = await api("/api/alerts");
+      if (data.company) {
+        showAdmin(data.company);
+      }
+      return data.alerts || [];
+    }
+
+    async function render() {
+      const alerts = await loadAlerts();
+      const count = alerts.length;
+      metricCount.textContent = `${count}건`;
+      metricState.textContent = count ? "표시 중" : "대기";
+
+      if (!count) {
+        alertList.innerHTML = `<div class="empty">등록된 알림이 없습니다.</div>`;
+        return;
+      }
+
+      alertList.innerHTML = alerts.map((alert) => `
+        <div class="item">
+          ${photoMarkup(alert)}
+          <div>
+            <strong>${escapeHtml(alert.name)}</strong>
+            <div class="item-meta">${escapeHtml(alert.gender)} · ${escapeHtml(alert.age)}세</div>
+            <div class="item-detail">${escapeHtml(alert.detail)}</div>
+          </div>
+          <button class="danger" type="button" data-delete="${alert.id}">삭제</button>
+        </div>
+      `).join("");
+    }
+
+    async function submitAuth(form, target, path, payload) {
+      clearInlineMessage(target);
+      setBusy(form, true);
+      try {
+        const data = await api(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        showAdmin(data.company);
+        await render();
+        form.reset();
+        showToast(path === "/api/signup" ? "기업 계정을 만들었습니다." : "로그인되었습니다.");
+      } catch (error) {
+        showError(target, error.message);
+      } finally {
+        setBusy(form, false);
+      }
+    }
+
+    async function checkSession() {
+      const session = await api("/api/session");
+      if (session.loggedIn) {
+        showAdmin(session.company);
+        await render();
+      } else {
+        showAuth();
+      }
+    }
+
+    signupForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitAuth(signupForm, "signup", "/api/signup", {
+        companyName: $("#signupName").value.trim(),
+        companyCode: $("#signupCode").value.trim(),
+        password: $("#signupPassword").value
+      });
+    });
+
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitAuth(loginForm, "login", "/api/login", {
+        companyCode: $("#loginCode").value.trim(),
+        password: $("#loginPassword").value
+      });
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      await api("/api/logout", { method: "POST" });
+      currentCompany = null;
+      showAuth();
+      showToast("로그아웃되었습니다.");
+    });
+
+    companyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearInlineMessage("company");
+      setBusy(companyForm, true);
+      try {
+        const data = await api("/api/company", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reportInstruction: reportInstructionInput.value.trim()
+          })
+        });
+        showAdmin(data.company);
+        showToast("신고 안내를 저장했습니다.");
+      } catch (error) {
+        showError("company", error.message);
+      } finally {
+        setBusy(companyForm, false);
+      }
+    });
+
+    alertForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearInlineMessage("alert");
+      setBusy(alertForm, true);
+      try {
+        const formData = new FormData();
+        formData.append("photo", photoInput.files[0] || "");
+        formData.append("name", nameInput.value.trim());
+        formData.append("gender", genderInput.value);
+        formData.append("age", ageInput.value);
+        formData.append("detail", detailInput.value.trim());
+        await api("/api/alerts", {
+          method: "POST",
+          body: formData
+        });
+        alertForm.reset();
+        await render();
+        showToast("등록되었습니다.");
+      } catch (error) {
+        showError("alert", error.message);
+      } finally {
+        setBusy(alertForm, false);
+      }
+    });
+
+    alertList.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-delete]");
+      if (!button) return;
+      try {
+        await api(`/api/alerts/${button.dataset.delete}`, { method: "DELETE" });
+        await render();
+        showToast("삭제되었습니다.");
+      } catch (error) {
+        showDialog("삭제 실패", error.message);
+      }
+    });
+
+    clearButton.addEventListener("click", async () => {
+      try {
+        await api("/api/alerts", { method: "DELETE" });
+        await render();
+        showToast("전체 알림을 삭제했습니다.");
+      } catch (error) {
+        showError("alert", error.message);
+      }
+    });
+
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(displayUrl.textContent);
+        showToast("주소를 복사했습니다.");
+      } catch {
+        showDialog("복사 실패", "브라우저에서 클립보드 사용을 허용하지 않았습니다.");
+      }
+    });
+
+    dialogClose.addEventListener("click", closeDialog);
+    dialogBackdrop.addEventListener("click", (event) => {
+      if (event.target === dialogBackdrop) closeDialog();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDialog();
+    });
+
+    checkSession().catch((error) => {
+      if (location.protocol !== "file:") {
+        showDialog("연결 실패", error.message);
+        showAuth();
+      }
+    });
+  </script>
+</body>
+</html>
