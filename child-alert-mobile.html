@@ -284,7 +284,7 @@
           <span class="count-badge"><span id="countText">0</span>건</span>
         </div>
         <h1>SafeNet</h1>
-        <p>아래 정보와 비슷한 아이를 보면 가까운 직원에게 바로 알려주세요.</p>
+        <p>아래 정보와 비슷한 사람을 보면 가까운 직원에게 바로 알려주세요.</p>
       </header>
 
       <p class="notice" id="reportGuide">가까운 직원 또는 안내 데스크에 알려주세요.</p>
@@ -328,9 +328,12 @@
 
     async function loadAlerts() {
       const response = await fetch(`/api/public/alerts?company=${encodeURIComponent(companyCode)}`);
-      const data = await response.json().catch(() => ({}));
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : { error: await response.text() };
       if (!response.ok) {
-        throw new Error(data.error || "알림을 불러오지 못했습니다.");
+        throw new Error(data.error || `알림을 불러오지 못했습니다. (${response.status})`);
       }
       return data;
     }

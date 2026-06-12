@@ -544,18 +544,18 @@
       <section class="admin-grid">
         <article class="panel">
           <div class="panel-head">
-            <h2>아이 정보 등록</h2>
+            <h2>대상자 정보 등록</h2>
             <p>등록한 정보는 이 기업의 와이파이 연결 화면에만 표시됩니다.</p>
           </div>
           <form id="alertForm">
             <div class="message error" id="alertMessage"></div>
             <label>
-              아이 사진
+              사진
               <input type="file" id="photoInput" accept="image/*">
             </label>
             <label>
-              아이 이름 또는 특징
-              <input type="text" id="nameInput" placeholder="예: 빨간 모자 아이" maxlength="32" required>
+              이름
+              <input type="text" id="nameInput" placeholder="예: 홍길동" maxlength="32" required>
             </label>
             <div class="form-row">
               <label>
@@ -568,7 +568,7 @@
               </label>
               <label>
                 나이
-                <input type="number" id="ageInput" min="0" max="18" placeholder="예: 7" required>
+                <input type="number" id="ageInput" min="0" max="120" placeholder="예: 72" required>
               </label>
             </div>
             <label>

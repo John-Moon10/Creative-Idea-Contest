@@ -472,6 +472,14 @@ class Handler(SimpleHTTPRequestHandler):
         if gender not in {"남자", "여자"}:
             self.send_json({"error": "성별은 남자 또는 여자만 선택할 수 있습니다."}, HTTPStatus.BAD_REQUEST)
             return
+        try:
+            age_number = int(age)
+        except ValueError:
+            self.send_json({"error": "나이는 숫자로 입력해주세요."}, HTTPStatus.BAD_REQUEST)
+            return
+        if age_number < 0 or age_number > 120:
+            self.send_json({"error": "나이는 0세 이상 120세 이하로 입력해주세요."}, HTTPStatus.BAD_REQUEST)
+            return
 
         alert_id = make_id()
         photo_url = ""
