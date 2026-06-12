@@ -554,7 +554,7 @@
               <input type="file" id="photoInput" accept="image/*">
             </label>
             <label>
-              식별명
+              아이 이름 또는 특징
               <input type="text" id="nameInput" placeholder="예: 빨간 모자 아이" maxlength="32" required>
             </label>
             <div class="form-row">
@@ -562,9 +562,8 @@
                 성별
                 <select id="genderInput" required>
                   <option value="">선택</option>
-                  <option>남아</option>
-                  <option>여아</option>
-                  <option>확인 필요</option>
+                  <option>남자</option>
+                  <option>여자</option>
                 </select>
               </label>
               <label>
@@ -732,15 +731,25 @@
     async function api(path, options = {}) {
       try {
         const response = await fetch(path, options);
-        const data = await response.json().catch(() => ({}));
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await response.json()
+          : { error: await response.text() };
         if (!response.ok) {
-          throw new Error(data.error || "요청을 처리하지 못했습니다.");
+          const detail = String(data.error || "").trim();
+          if (response.status === 404) {
+            throw new Error("서버 API를 찾지 못했습니다. Render에서 Static Site가 아니라 Web Service(Docker)로 배포했는지 확인해주세요.");
+          }
+          throw new Error(detail || `요청 실패 (${response.status})`);
         }
         return data;
       } catch (error) {
         if (location.protocol === "file:") {
           showServerNote();
           throw new Error("서버 주소에서 열어야 합니다.");
+        }
+        if (error instanceof TypeError) {
+          throw new Error("서버에 연결하지 못했습니다. Render 배포가 끝났는지, Web Service가 실행 중인지 확인해주세요.");
         }
         throw error;
       }

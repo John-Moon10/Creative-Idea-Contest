@@ -239,6 +239,9 @@ class Handler(SimpleHTTPRequestHandler):
                 target += f"?company={normalize_code(company)}"
             self.redirect(target)
             return
+        if path == "/healthz":
+            self.send_json({"ok": True, "service": "SafeNet"})
+            return
         if path == "/api/session":
             company = self.current_company()
             self.send_json({"loggedIn": bool(company), "company": self.public_company(company)})
@@ -465,6 +468,9 @@ class Handler(SimpleHTTPRequestHandler):
         detail = (form.getfirst("detail") or "").strip()
         if not name or not gender or not age or not detail:
             self.send_json({"error": "필수 정보를 모두 입력해주세요."}, HTTPStatus.BAD_REQUEST)
+            return
+        if gender not in {"남자", "여자"}:
+            self.send_json({"error": "성별은 남자 또는 여자만 선택할 수 있습니다."}, HTTPStatus.BAD_REQUEST)
             return
 
         alert_id = make_id()
